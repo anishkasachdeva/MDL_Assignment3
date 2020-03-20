@@ -7,6 +7,8 @@ API_ENDPOINT = 'http://10.4.21.147'
 PORT = 3000
 MAX_DEG = 11
 
+KEY = '9wAwMbeZDb2T9n57mknTNdOYGuNbbe7PrPx3R7lvdilAjZzxcs'
+
 #### functions that you can call
 def get_errors(id, vector):
     """
@@ -50,9 +52,9 @@ if __name__ == "__main__":
     to verify that the server is working for your ID.
     """
 
-    err = get_errors('9wAwMbeZDb2T9n57mknTNdOYGuNbbe7PrPx3R7lvdilAjZzxcs', list(-np.arange(0,1.1,0.1)))
+    err = get_errors(KEY, list(-np.arange(0,1.1,0.1)))
     assert len(err) == 2
 
-    submit_status = submit('9wAwMbeZDb2T9n57mknTNdOYGuNbbe7PrPx3R7lvdilAjZzxcs', list(-np.arange(0,1.1,0.1)))
+    submit_status = submit(KEY, list(-np.arange(0,1.1,0.1)))
     assert "submitted" in submit_status
     
