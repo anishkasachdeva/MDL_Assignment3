@@ -1,218 +1,185 @@
-# Python3 program to create target string, starting from 
-# random string using Genetic Algorithm 
-
+import json
+import requests
+import numpy as np
 import random
 import os
 
-# Number of individuals in each generation 
+######### DO NOT CHANGE ANYTHING IN THIS FILE ##################
+API_ENDPOINT = 'http://10.4.21.147'
+PORT = 3000
+MAX_DEG = 11
+TARGET_LENGTH=11
+
 POPULATION_SIZE = 10
-TARGET_LENGTH = 11
+file = open("models.txt" , "a")
+ID='9wAwMbeZDb2T9n57mknTNdOYGuNbbe7PrPx3R7lvdilAjZzxcs'
+THRESHOLD=1000000
 
-# Valid genes
-GENES = '''abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP 
-QRSTUVWXYZ 1234567890, .-;:_!"#%&/()=?@${[]}'''
+#### functions that you can call
+def break_condition(population):
+    sum=0
+    for i in population:
+        sum=sum+i.fitness
+    sum=sum/POPULATION_SIZE
+    if sum < THRESHOLD:
+        return False
+    return True
 
-# Target string to be generated
-TARGET = "I love GeeksforGeeks"
+def get_errors(id, vector):
+    """
+    returns python array of length 2 
+    (train error and validation error)
+    """
+    for i in vector: assert -10<=abs(i)<=10
+    assert len(vector) == MAX_DEG
 
+    return json.loads(send_request(id, vector, 'geterrors'))
 
+def submit(id, vector):
+    """
+    used to make official submission of your weight vector
+    returns string "successfully submitted" if properly submitted.
+    """
+    for i in vector: assert -10<=abs(i)<=10
+    assert len(vector) == MAX_DEG
+    return send_request(id, vector, 'submit')
 
+#### utility functions
+def urljoin(root, port, path=''):
+    root = root + ':' + str(port)
+    if path: root = '/'.join([root.rstrip('/'), path.rstrip('/')])
+    return root
 
+def send_request(id, vector, path):
+    api = urljoin(API_ENDPOINT, PORT, path)
+    vector = json.dumps(vector)
+    response = requests.post(api, data={'id':id, 'vector':vector}).text
+    if "reported" in response:
+        print(response)
+        exit()
 
-
-
-def get_error(file,child_chromosome):
-	# err_value = []
-
-	## here the child_chromosome is sent to the server and err_value receives the list of error.
-	## err_value = get_errors() // blah blah whatever has to be written
-
-	file.write("Child Generated" + child_chromosome + "\n")
-	file.write("Errors Received" + err_value+"\n")
-	
-	return err_value
-
-
-
-
-
-
+    return response
 
 
 
 
 class Individual(object):
-	'''
-	Class representing individual in population
-	'''
-	def __init__(self, chromosome,err_value):
-		self.chromosome = chromosome
-		# self.err_value = err_value
-		self.fitness = self.cal_fitness(err_value)
-
-	@classmethod
-	def mutated_genes(self):
-		'''
-		create random genes for mutation
-		'''
-		global GENES
-		gene = random.choice(GENES)
-		return gene
-
-	@classmethod
-	def create_gnome(self):
-		'''
-		create chromosome or string of genes
-		'''
-		global TARGET_LENGTH
-		gnome = []
-		gnome_len = TARGET_LENGTH
-		for i in range (gnome_len):
-			gene = self.mutated_genes()
-			gnome.append(gene)
-		
-		return gnome
-		# return [self.mutated_genes() for _ in range(gnome_len)]
-
-	
-
-	def mate(self, par2):
-		'''
-		Perform mating and produce new offspring
-		'''
-
-		# chromosome for offspring
-		child_chromosome = []
-		for gp1, gp2 in zip(self.chromosome, par2.chromosome):
-
-			# random probability 
-			prob = random.random()
-
-			# if prob is less than 0.45, insert gene 
-			# from parent 1 
-			if prob < 0.45:
-				child_chromosome.append(gp1)
-
-			# if prob is between 0.45 and 0.90, insert 
-			# gene from parent 2 
-			elif prob < 0.90:
-				child_chromosome.append(gp2)
-
-			# otherwise insert random gene(mutate), 
-			# for maintaining diversity 
-			else:
-				child_chromosome.append(self.mutated_genes())
-
-			## here the child_chromosome is sent to the server and err_value receives the list of error.
-			## err_value = get_errors() // blah blah whatever has to be written
-
-			# err_value = []
-    		# file.write(child_chromosome + "\n")
-			# file.write(err_value+"\n")
-			# file.write("\n")
-		
-		return child_chromosome
+    def _init_(self, chromosome):
+        global ID
+        global file
+        self.chromosome = chromosome
+        self.err_value = get_errors(ID,self.chromosome)
+        file.write(str(self.chromosome ))
+        file.write(" ")
+        file.write(str(self.err_value))
+        file.write("\n")
+        self.fitness = self.cal_fitness()
 
 
-		# create new Individual(offspring) using 
-		# generated chromosome for offspring 
-		# return Individual(child_chromosome,err_value)
+    def mate(self, par2):
+        child_chromosome = []
+        for gp1, gp2 in zip(self.chromosome, par2.chromosome):
+            prob = random.random()
+            if prob < 0.45:
+                child_chromosome.append(gp1)
+            elif prob < 0.90:
+                child_chromosome.append(gp2)
+            else:
+                child_chromosome.append(random.uniform(0.0,20.0)-10)
+        return Individual(child_chromosome,self.file)
 
-	def probability(self):
-		'''
-		To calculate the probabilty
-		'''
-		pass
 
-	def cal_fitness(self,err_value,file):
-		'''
-		Calculate fittness score, it is the number of 
-		characters in string which differ from target 
-		string.
-		'''
-		# pass
-		# global TARGET
-		fitness = 0
-		# for gs, gt in zip(self.chromosome, TARGET):
-		 	# if gs != gt: fitness+= 1
-		fitness = err_value[0] + err_value[1]
-		# file.write("Fitness score" + fitness + "\n")
-		# file.write("\n")
+    def probability(self):
+        pass
 
-		return fitness
 
-# Driver code 
+    def cal_fitness(self):
+        fitness = self.err_value[0] + self.err_value[1]
+        return fitness
+
+ 
+def create_gnome():
+    global TARGET_LENGTH
+    gnome = []
+    gnome_len = TARGET_LENGTH
+    for i in range (gnome_len):
+        gene = random.uniform(0.0,20.0)
+        gene=gene-10
+        gnome.append(gene)
+        
+    return gnome
+
+# Driver code
 def main():
+    # print("la")
+    global file
 
-	file = open("models.txt" , "w")
-	
-	global POPULATION_SIZE
-	#current generation
-	generation = 1
-	found = False
-	first_individual = [-0.00016927573251173823, 0.0010953590656607808, 0.003731869524518327, 0.08922889556431182, 0.03587507175384199, -0.0015634754169704097, -7.439827367266828e-05, 3.7168210026033343e-06, 1.555252501348866e-08, -2.2215895929103804e-09, 2.306783174308054e-11]
-	## what i have understood is that population is an array of objects
-	population = []
+    global POPULATION_SIZE
+    #current generation
+    # generation = 1
+    # found = False
+    ## what i have understood is that population is an array of objects
+    first_individual=[0.0, 0.1240317450077846, -6.211941063144333, 0.04933903144709126, 0.03810848157715883, 8.132366097133624e-05, -6.018769160916912e-05, -1.251585565299179e-07, 3.484096383229681e-08, 4.1614924993407104e-11, -6.732420176902565e-12]
+    population = []
 
-    
-    ## now the population has 1 single individual (given in the question)
+    population.append(Individual(first_individual))
 
+    while(len(population)<POPULATION_SIZE):
+        x=create_gnome()
+        population.append(Individual(x))
 
-	## I don't know what Individual is doing here. I wrote it bcz it was written below in the for loop
-	err_value = get_error(file,first_individual)
-	population.append(Individual(first_individual,err_value))
+    while(break_condition(population)):
+        child_population = []
+		## for adding the individuals with least fitness score. We need to sort based on fitness score??
+		# child_population.extend(population[:5]) 
+		parent1 = random.choice(population[:8])
+        parent2 = random.choice(population[:8])
+		child = parent1.mate(parent2)
+		child_population.append(Individual(child))
 
+	population = child_population
 
-	## Changed to (population_size - 1) bcz we have already added an individual
-	# create initial population
-	for _ in range(POPULATION_SIZE - 1):
-		gnome = Individual.create_gnome()
-		err_value = get_error(file,gnome)
-		population.append(Individual(gnome,err_value))
-		
-	while not found:
-		#sort the population in increasing order of fitness score
-		population = sorted(population, key = lambda x:x.fitness)
+        # index_p1,index_p2=
+    ## Changed to (population_size - 1) bcz we have already added an individual
+    # create initial population
+    # for _ in range(POPULATION_SIZE - 1):
+    #     gnome = Individual.create_gnome()
+    #     err_value = get_error(file,gnome)
+    #     population.append(Individual(gnome,err_value))
+        
+    # while not found:
+    #     #sort the population in increasing order of fitness score
+    #     population = sorted(population, key = lambda x:x.fitness)
 
-		# if the individual having lowest fitness score ie. 
-		# 0 then we know that we have reached to the target 
-		# and break the loop
-		
-		if population[0].fitness <= 0:
-			found = True
-			break
-        # Otherwise generate new offsprings for new generation
+    #     # if the individual having lowest fitness score ie. 
+    #     # 0 then we know that we have reached to the target 
+    #     # and break the loop
+        
+    #     if population[0].fitness <= 0:
+    #         found = True
+    #         break
+    #     # Otherwise generate new offsprings for new generation
 
-		new_generation = []
-        # Perform Elitism, that mean 10% of fittest population
-        # # goes to the next generation
-		s = int((10*POPULATION_SIZE)/100)
-		new_generation.extend(population[:s]) 
+    #     new_generation = []
+    #     # Perform Elitism, that mean 10% of fittest population
+    #     # # goes to the next generation
+    #     s = int((10*POPULATION_SIZE)/100)
+    #     new_generation.extend(population[:s]) 
 
-		# From 50% of fittest population, Individuals 
-		# will mate to produce offspring
-		s = int((90*POPULATION_SIZE)/100)
-		for _ in range(s):
-			parent1 = random.choice(population[:5])
-			parent2 = random.choice(population[:5])
-			child = parent1.mate(parent2)
-			err_value = get_errors(file,child)
-			# new_child = Individual(child,err_value)
-			new_generation.append(Individual(child,err_value))
+    #     # From 50% of fittest population, Individuals 
+    #     # will mate to produce offspring
+    #     s = int((90*POPULATION_SIZE)/100)
+    #     for _ in range(s):
+    #         parent1 = random.choice(population[:5])
+    #         parent2 = random.choice(population[:5])
+    #         child = parent1.mate(parent2)
+    #         err_value = get_errors(file,child)
+    #         # new_child = Individual(child,err_value)
+    #         new_generation.append(Individual(child,err_value))
             
-		population = new_generation 
+    #     population = new_generation 
 
-		# print("Generation: {}\tString: {}\tFitness: {}".\ 
-		# 	format(generation, 
-		# 	"".join(population[0].chromosome), 
-		# 	population[0].fitness))
+    #     generation += 1
 
-		generation += 1
-
-	# print("Generation: {}\tString: {}\tFitness: {}".\ 
-	# 	format(generation, 
-	# 	"".join(population[0].chromosome), 
-	# 	population[0].fitness)) 
-
-if __name__ == '__main__': 
-	main() 
+if _name_ == '_main_': 
+    main()
