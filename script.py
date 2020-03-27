@@ -14,7 +14,7 @@ class model(object):
     # def __hash__(self):
     #     return hash(str(self.model))
     def cal_fitness(self):
-        fitness = 2*(self.err[0] + self.err[1]) +abs(self.err[0] - self.err[1])
+        fitness = (self.err[0] + self.err[1]) + abs(self.err[0]-self.err[1])
         return fitness
 
 # def compare_models(model1,model2):
@@ -23,7 +23,8 @@ class model(object):
 #             return False
 #     return True
 
-f = open('models.txt','r')
+f = open('test2.txt','r')
+f2=open('test.txt','w')
 message = f.read()
 lines=message.split('\n')
 lines=lines[0:len(lines)-1]
@@ -40,6 +41,13 @@ for line in lines:
     for i in err_string:
         err_numbers.append(float(i))
     models.append(model(model_numbers,err_numbers))
+for i in models:
+    if i.err[0]<=10000000 or i.err[1]<=10000000:
+        f2.write(str(i.model))
+        f2.write(" ")
+        f2.write(str(i.err))
+        f2.write("\n")
+f2.close()
 models = sorted(models, key = lambda x:x.fitness)
 # models=set(models)
 # models=list(models)
@@ -47,8 +55,9 @@ models = sorted(models, key = lambda x:x.fitness)
 it=0
 count=0
 distinct_fitness_index=[]
+# print(len(models))
 while it<(len(models)-1):
-    while models[it].fitness==models[it+1].fitness and it<(len(models)-1):
+    while it<(len(models)-1) and models[it].fitness==models[it+1].fitness :
         it=it+1
     distinct_fitness_index.append(it)
     count=count+1
@@ -57,18 +66,24 @@ if models[len(models)-2].fitness!=models[len(models)-1].fitness :
     distinct_fitness_index.append(len(models)-1)
     count=count+1
 # print(count)
-# print("[",end='')
-for j in range(100):
-    print(j+1,end=' ')
-    print(distinct_fitness_index[j],end=' ')
-    print(models[distinct_fitness_index[j]].err ,end=' ')
-    print(models[distinct_fitness_index[j]].fitness)
-    # print("[",end=' ')
-    # print(distinct_fitness_index[j],end=' ')
-    # print(models[distinct_fitness_index[j]].model ,end=' ')
-    # print(",",end='')
-    # print(models[distinct_fitness_index[j]].fitness)
-    # print(models[distinct_fitness_index[j]].err)
-# # print("\r",end='')
-# print("]")
+# probablity_array=[1,2,3,4]
+# population=[1,2,3,4]
+# fitness_sum=0
+# parents = random.choices(population,weights=probablity_array,cum_weights=None,k=100)
+# print(parents)
+
+# for j in range(100):
+#     print(j+1,end=' ')
+#     print(distinct_fitness_index[j],end=' ')
+#     print(models[distinct_fitness_index[j]].err ,end=' ')
+#     print(models[distinct_fitness_index[j]].fitness)
+
+
+print("[",end='')
+for j in range(35):
+    print(models[distinct_fitness_index[j]].model ,end=' ')
+    print(",",end='')
+print("]")
+
+
 f.close()
