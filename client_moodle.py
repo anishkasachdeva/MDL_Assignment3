@@ -83,7 +83,7 @@ class Individual(object):
 
     def mate(self, par2):
         child_chromosome = []
-        i=0
+        i = 0
         for gp1, gp2 in zip(self.chromosome, par2.chromosome):
             prob = random.random()
             # if prob < 0.4:
@@ -107,8 +107,8 @@ class Individual(object):
                     # else:
                     #     gene = random.uniform(gp1-1.2,gp1+1.2)
                     # if prob < 0.066:
-                    random_float=random.uniform(i+1,i+7)
-                    gene=gp1+(randint(-9,9) + random.uniform(-0.999999999999999,0.999999999999999))/(10**random_float)
+                    random_float = random.uniform(i+1,i+7)
+                    gene = gp1 + (randint(-9,9) + random.uniform(-0.999999999999999,0.999999999999999))/(10**random_float)
                     # else:
                     #     random_float=random.uniform(5,15)
                     #     gene=gp1+(random.uniform(-1,1))/(10**random_float)
@@ -117,8 +117,8 @@ class Individual(object):
                     #         gene=random.uniform(-10.0,10.0)
                     #     else:
                     #         gene=gp1+random.random(-1,1)
-                    if abs(gene)<=10:
-                        gp1=gene
+                    if abs(gene) <= 10:
+                        gp1 = gene
                 child_chromosome.append(gp1)
             else:
                 if prob < 0.65:
@@ -129,8 +129,8 @@ class Individual(object):
                     # else:
                     #     gene = random.uniform(gp2-1.2,gp2+1.2)
                     # if prob < 0.666:
-                    random_float=random.uniform(i+1,i+7)
-                    gene=gp2+(randint(-9,9) + random.uniform(-0.999999999999999,0.999999999999999))/(10**random_float)
+                    random_float = random.uniform(i+1,i+7)
+                    gene = gp2 + (randint(-9,9) + random.uniform(-0.999999999999999,0.999999999999999))/(10**random_float)
                     # else:
                     #     random_float=random.uniform(5,15)
                     #     gene=gp2+(random.uniform(-1,1))/(10**random_float)
@@ -139,8 +139,8 @@ class Individual(object):
                     #         gene=random.uniform(-10.0,10.0)
                     #     else:
                     #         gene=gp2+random.random(-1,1)
-                    if abs(gene)<=10:
-                        gp2=gene
+                    if abs(gene) <= 10:
+                        gp2 = gene
                 child_chromosome.append(gp2)
             # else:
             #     child_chromosome.append(random.uniform(0.0,20.0)-10)
